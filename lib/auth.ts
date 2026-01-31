@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
-const API_URL = "https://2866sc2ucfrrp8nf5fvke56cet4smzdj.app.specular.dev";
+const API_URL = Constants.expoConfig?.extra?.backendUrl || "";
 
 export const BEARER_TOKEN_KEY = "ProxiTask_bearer_token";
 

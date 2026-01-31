@@ -3,7 +3,21 @@
 
 ## ✅ Integration Summary
 
-The ProxiTask backend API has been successfully integrated into the frontend application. All TODO comments have been replaced with working API calls.
+The ProxiTask backend API has been successfully integrated into the frontend application. The backend was updated to properly configure Better Auth with OAuth providers (Google, Apple, GitHub) and email/password authentication. The frontend already had complete integration with all API endpoints.
+
+## 🔧 Recent Backend Fix
+
+**Issue:** Sign in/sign up attempts were giving "authentication cancelled" errors due to missing OAuth provider configuration causing 500 errors.
+
+**Solution:** The backend was updated to:
+- Configure Better Auth with email/password authentication
+- Add Google, Apple, and GitHub OAuth providers
+- Use environment variables for OAuth credentials (graceful fallback if not set)
+- Proper error handling to prevent 500 errors when OAuth credentials are missing
+
+**Frontend Changes:** 
+- Fixed hardcoded API URL in `lib/auth.ts` to read from `Constants.expoConfig?.extra?.backendUrl`
+- Enhanced Modal component to support single-button modals (when cancelText is empty)
 
 ---
 

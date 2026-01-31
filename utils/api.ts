@@ -64,8 +64,6 @@ export const apiCall = async <T = any>(
       },
     };
 
-    console.log("[API] Fetch options:", fetchOptions);
-
     // Always send the token if we have it (needed for cross-domain/iframe support)
     const token = await getBearerToken();
     if (token) {
@@ -73,6 +71,9 @@ export const apiCall = async <T = any>(
         ...fetchOptions.headers,
         Authorization: `Bearer ${token}`,
       };
+      console.log("[API] Request with auth token");
+    } else {
+      console.log("[API] Request without auth token");
     }
 
     const response = await fetch(url, fetchOptions);
