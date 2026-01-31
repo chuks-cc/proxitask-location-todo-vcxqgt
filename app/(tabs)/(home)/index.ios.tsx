@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
   },
   taskList: {
     padding: 16,
+    paddingBottom: 100,
   },
   taskCard: {
     backgroundColor: colors.card,
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 100,
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    zIndex: 1000,
   },
   modalContainer: {
     flex: 1,
@@ -581,6 +583,11 @@ export default function HomeScreen() {
     return markers;
   };
 
+  const handleAddTaskPress = () => {
+    console.log('User tapped Add Task button (+) on iOS');
+    setModalVisible(true);
+  };
+
   if (loading) {
     const loadingText = 'Loading ProxiTask...';
     return (
@@ -717,7 +724,11 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={handleAddTaskPress}
+        activeOpacity={0.7}
+      >
         <IconSymbol
           ios_icon_name="plus"
           android_material_icon_name="add"
