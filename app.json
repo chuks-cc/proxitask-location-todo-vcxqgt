@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "ProxiTask",
+    "slug": "ProxiTask",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/natively-dark.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/natively-dark.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4A90E2"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.ProxiTask",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "ProxiTask needs your location to show nearby tasks and send notifications when you're close to a task location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "ProxiTask needs your location in the background to notify you when you're near a task location.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/natively-dark.png",
+        "backgroundColor": "#4A90E2"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.ProxiTask",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/final_quest_240x240.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "ProxiTask needs your location to show nearby tasks and send notifications when you're close to a task location."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/natively-dark.png",
+          "color": "#4A90E2"
+        }
+      ]
+    ],
+    "scheme": "ProxiTask",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "backendUrl": "https://2866sc2ucfrrp8nf5fvke56cet4smzdj.app.specular.dev"
+    }
+  }
+}
