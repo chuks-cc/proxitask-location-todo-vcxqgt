@@ -2,8 +2,8 @@
 {
   "expo": {
     "name": "ProxyTasks",
-    "slug": "ProxyTasks",
-    "version": "1.0.0",
+    "slug": "proxitask-location-todo-vcxqgt",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ProxyTasks",
+      "bundleIdentifier": "com.swivago.ProxyTasks",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "ProxyTasks needs your location to show nearby tasks and send notifications when you're close to a task location.",
@@ -31,13 +31,14 @@
         "backgroundColor": "#4A90E2"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.ProxyTasks",
+      "package": "com.swivago.ProxyTasks",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/images/final_quest_240x240.png",
@@ -67,7 +68,7 @@
     },
     "extra": {
       "router": {},
-      "backendUrl": "https://hvhkdee64v4cjscqrh26k8br25vk6hre.app.specular.dev"
+      "backendUrl": "https://prod-proj-vhszmxpfwqyr9aqd48yfu-liwg5h36mq-ey.a.run.app"
     }
   }
 }
