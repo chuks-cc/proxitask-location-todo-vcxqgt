@@ -1,8 +1,7 @@
-
 {
   "expo": {
-    "name": "ProxyTasks",
-    "slug": "proxitask-location-todo-vcxqgt",
+    "name": "ProxiTask",
+    "slug": "ProxiTask",
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -62,13 +61,13 @@
         }
       ]
     ],
-    "scheme": "ProxyTasks",
+    "scheme": "ProxiTask",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {},
-      "backendUrl": "https://prod-proj-vhszmxpfwqyr9aqd48yfu-liwg5h36mq-ey.a.run.app"
+      "backendUrl": "https://b8wp4tkycstahnpznmx6eep7pg46chmv.app.specular.dev"
     }
   }
 }
