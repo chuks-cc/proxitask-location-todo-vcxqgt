@@ -1,7 +1,8 @@
+
 {
   "expo": {
-    "name": "ProxiTask",
-    "slug": "ProxiTask",
+    "name": "ProxyTasks",
+    "slug": "ProxyTasks",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -14,11 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ProxiTask",
+      "bundleIdentifier": "com.anonymous.ProxyTasks",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "ProxiTask needs your location to show nearby tasks and send notifications when you're close to a task location.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "ProxiTask needs your location in the background to notify you when you're near a task location.",
+        "NSLocationWhenInUseUsageDescription": "ProxyTasks needs your location to show nearby tasks and send notifications when you're close to a task location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "ProxyTasks needs your location in the background to notify you when you're near a task location.",
         "UIBackgroundModes": [
           "location"
         ]
@@ -30,7 +31,7 @@
         "backgroundColor": "#4A90E2"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.ProxiTask",
+      "package": "com.anonymous.ProxyTasks",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -49,7 +50,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "ProxiTask needs your location to show nearby tasks and send notifications when you're close to a task location."
+          "locationAlwaysAndWhenInUsePermission": "ProxyTasks needs your location to show nearby tasks and send notifications when you're close to a task location."
         }
       ],
       [
@@ -60,7 +61,7 @@
         }
       ]
     ],
-    "scheme": "ProxiTask",
+    "scheme": "ProxyTasks",
     "experiments": {
       "typedRoutes": true
     },

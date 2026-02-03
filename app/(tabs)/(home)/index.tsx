@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  console.log('ProxiTask HomeScreen rendered');
+  console.log('ProxyTasks HomeScreen rendered');
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -404,7 +404,7 @@ export default function HomeScreen() {
       const locationPermission = await Location.requestForegroundPermissionsAsync();
       if (locationPermission.status !== 'granted') {
         console.log('Foreground location permission denied');
-        setErrorMessage('Location permission is required to use ProxiTask');
+        setErrorMessage('Location permission is required to use ProxyTasks');
         return;
       }
       console.log('Foreground location permission granted');
@@ -510,7 +510,7 @@ export default function HomeScreen() {
         timeInterval: 60000, // Update every 60 seconds
         distanceInterval: 100, // Or when moved 100 meters
         foregroundService: {
-          notificationTitle: 'ProxiTask is tracking your location',
+          notificationTitle: 'ProxyTasks is tracking your location',
           notificationBody: 'We\'ll notify you when you\'re near a task',
           notificationColor: '#4A90E2',
         },
@@ -567,7 +567,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    console.log('Initializing ProxiTask...');
+    console.log('Initializing ProxyTasks...');
     initializeApp();
     return () => {
       if (locationSubscription.current) {
@@ -726,7 +726,7 @@ export default function HomeScreen() {
   };
 
   if (loading) {
-    const loadingText = 'Loading ProxiTask...';
+    const loadingText = 'Loading ProxyTasks...';
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -745,7 +745,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ProxiTask</Text>
+        <Text style={styles.headerTitle}>ProxyTasks</Text>
         <Text style={styles.headerSubtitle}>Location-based task reminders</Text>
         {backgroundLocationEnabled && (
           <View style={styles.backgroundStatusBadge}>

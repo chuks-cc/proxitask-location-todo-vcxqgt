@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  console.log('ProxiTask HomeScreen rendered (iOS)');
+  console.log('ProxyTasks HomeScreen rendered (iOS)');
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -403,7 +403,7 @@ export default function HomeScreen() {
       const locationPermission = await Location.requestForegroundPermissionsAsync();
       if (locationPermission.status !== 'granted') {
         console.log('Foreground location permission denied');
-        setErrorMessage('Location permission is required to use ProxiTask');
+        setErrorMessage('Location permission is required to use ProxyTasks');
         return;
       }
       console.log('Foreground location permission granted');
@@ -561,7 +561,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    console.log('Initializing ProxiTask (iOS)...');
+    console.log('Initializing ProxyTasks (iOS)...');
     initializeApp();
     return () => {
       if (locationSubscription.current) {
@@ -720,7 +720,7 @@ export default function HomeScreen() {
   };
 
   if (loading) {
-    const loadingText = 'Loading ProxiTask...';
+    const loadingText = 'Loading ProxyTasks...';
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -739,7 +739,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ProxiTask</Text>
+        <Text style={styles.headerTitle}>ProxyTasks</Text>
         <Text style={styles.headerSubtitle}>Location-based task reminders</Text>
         {backgroundLocationEnabled && (
           <View style={styles.backgroundStatusBadge}>
