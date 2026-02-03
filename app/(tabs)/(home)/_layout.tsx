@@ -8,7 +8,7 @@ export default function HomeLayout() {
         name="index"
         options={{
           headerShown: Platform.OS === 'ios', // Show header on iOS with NativeTabs, hide on Android/Web
-          title: 'Home'
+          title: 'ProxyTasks'
         }}
       />
     </Stack>

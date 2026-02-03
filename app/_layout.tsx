@@ -43,7 +43,7 @@ function RootLayoutNav() {
       // Redirect to home if authenticated and in auth screens
       router.replace('/(tabs)/(home)');
     }
-  }, [user, authLoading, segments]);
+  }, [user, authLoading, segments, router]);
 
   if (authLoading) {
     return (
