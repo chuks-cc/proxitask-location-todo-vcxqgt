@@ -8,20 +8,6 @@
       "when": 1769886681317,
       "tag": "20260131191121_illegal_slayback",
       "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1769887625352,
-      "tag": "20260131192705_eminent_hemingway",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1772997264442,
-      "tag": "20260308191424_productive_patriot",
-      "breakpoints": true
     }
   ]
 }

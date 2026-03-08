@@ -2,20 +2,15 @@
 import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/styles/commonStyles';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
-import Constants from 'expo-constants';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Map } from '@/components/Map';
 import { ConfirmModal } from '@/components/ui/Modal';
-import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/api';
+import { authenticatedGet, authenticatedPost, authenticatedPut, authenticatedDelete, apiPost } from '@/utils/api';
 
-const GEOFENCE_RADIUS = 150; // Monitoring radius in meters
-const NOTIFICATION_DISTANCE = 100; // Trigger notification at 100 meters
-const COOLDOWN_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
-const BACKGROUND_LOCATION_TASK = 'BACKGROUND_LOCATION_TASK';
+const ONE_MILE_IN_METERS = 1609.34;
 
 // Set notification handler
 Notifications.setNotificationHandler({
@@ -41,109 +36,6 @@ interface UserLocation {
   latitude: number;
   longitude: number;
 }
-
-// Helper function to calculate distance between two coordinates (Haversine formula)
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // Distance in meters
-};
-
-// Cooldown tracker for notifications
-const notificationCooldowns = new Map<string, number>();
-
-// Define the background location task
-TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
-  if (error) {
-    console.error('[Background Task] Error:', error);
-    return;
-  }
-
-  if (data) {
-    const { locations } = data as { locations: Location.LocationObject[] };
-    const location = locations[0];
-    
-    if (!location) {
-      console.log('[Background Task] No location data');
-      return;
-    }
-
-    console.log('[Background Task] Location update:', location.coords);
-
-    try {
-      // Fetch tasks from backend (public, no auth required)
-      const backendUrl = Constants.expoConfig?.extra?.backendUrl || '';
-      console.log('[Background Task] Using backend URL:', backendUrl);
-      const response = await fetch(`${backendUrl}/api/tasks`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        console.error('[Background Task] Failed to fetch tasks:', response.status);
-        return;
-      }
-
-      const tasks: Task[] = await response.json();
-      console.log('[Background Task] Fetched tasks:', tasks.length);
-
-      const currentTime = Date.now();
-
-      // Check proximity to each task
-      for (const task of tasks) {
-        if (!task.completed) {
-          const distance = calculateDistance(
-            location.coords.latitude,
-            location.coords.longitude,
-            task.latitude,
-            task.longitude
-          );
-
-          console.log(`[Background Task] Distance to "${task.title}": ${distance.toFixed(2)}m`);
-
-          // Check if within notification distance (100m)
-          if (distance <= NOTIFICATION_DISTANCE) {
-            // Check cooldown
-            const lastNotificationTime = notificationCooldowns.get(task.id) || 0;
-            const timeSinceLastNotification = currentTime - lastNotificationTime;
-
-            if (timeSinceLastNotification >= COOLDOWN_DURATION) {
-              console.log(`[Background Task] Sending notification for task: ${task.title}`);
-
-              await Notifications.scheduleNotificationAsync({
-                content: {
-                  title: `📍 Near Task: ${task.title}`,
-                  body: `You're ${distance.toFixed(0)} meters away from "${task.address}"`,
-                  data: { taskId: task.id },
-                },
-                trigger: null,
-              });
-
-              // Update cooldown
-              notificationCooldowns.set(task.id, currentTime);
-            } else {
-              const remainingCooldown = Math.ceil((COOLDOWN_DURATION - timeSinceLastNotification) / 60000);
-              console.log(`[Background Task] Cooldown active for "${task.title}". ${remainingCooldown} minutes remaining.`);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('[Background Task] Error processing location:', error);
-    }
-  }
-});
 
 const styles = StyleSheet.create({
   container: {
@@ -176,7 +68,6 @@ const styles = StyleSheet.create({
   },
   taskList: {
     padding: 16,
-    paddingBottom: 100,
   },
   taskCard: {
     backgroundColor: colors.card,
@@ -230,7 +121,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 100,
+    bottom: 20,
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -242,7 +133,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 1000,
   },
   modalContainer: {
     flex: 1,
@@ -378,30 +268,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
   },
-  backgroundStatusBadge: {
-    backgroundColor: colors.success,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 8,
-    alignSelf: 'flex-start',
-  },
-  backgroundStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
 });
 
 export default function HomeScreen() {
-  console.log('ProxyTasks HomeScreen rendered');
+  console.log('ProxiTask HomeScreen rendered');
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [backgroundLocationEnabled, setBackgroundLocationEnabled] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     address: '',
@@ -418,7 +294,28 @@ export default function HomeScreen() {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
-  const notifiedTasks = useRef<Map<string, number>>(new Map());
+  const notifiedTasks = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    console.log('Initializing ProxiTask...');
+    initializeApp();
+    return () => {
+      if (locationSubscription.current) {
+        console.log('Cleaning up location subscription');
+        locationSubscription.current.remove();
+      }
+    };
+  }, []);
+
+  const initializeApp = async () => {
+    console.log('Requesting permissions...');
+    await requestPermissions();
+    console.log('Starting location tracking...');
+    await startLocationTracking();
+    console.log('Loading tasks...');
+    await loadTasks();
+    setLoading(false);
+  };
 
   const requestPermissions = async () => {
     try {
@@ -426,16 +323,15 @@ export default function HomeScreen() {
       const locationPermission = await Location.requestForegroundPermissionsAsync();
       if (locationPermission.status !== 'granted') {
         console.log('Foreground location permission denied');
-        setErrorMessage('Location permission is required to use ProxyTasks');
+        setErrorMessage('Location permission is required to use ProxiTask');
         return;
       }
       console.log('Foreground location permission granted');
 
-      console.log('Requesting background location permissions (Always Allow)...');
+      console.log('Requesting background location permissions...');
       const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
       if (backgroundPermission.status !== 'granted') {
         console.log('Background location permission denied');
-        setErrorMessage('Background location permission (Always Allow) is required for notifications when the app is closed. Please enable it in Settings.');
       } else {
         console.log('Background location permission granted');
       }
@@ -444,7 +340,6 @@ export default function HomeScreen() {
       const notificationPermission = await Notifications.requestPermissionsAsync();
       if (notificationPermission.status !== 'granted') {
         console.log('Notification permission denied');
-        setErrorMessage('Notification permission is required to alert you when near tasks.');
       } else {
         console.log('Notification permission granted');
       }
@@ -452,38 +347,6 @@ export default function HomeScreen() {
       console.error('Error requesting permissions:', error);
     }
   };
-
-  const checkProximityToTasks = useCallback((location: UserLocation) => {
-    console.log('Checking proximity to tasks...');
-    const currentTime = Date.now();
-
-    tasks.forEach((task) => {
-      if (!task.completed) {
-        const distance = calculateDistance(
-          location.latitude,
-          location.longitude,
-          task.latitude,
-          task.longitude
-        );
-        console.log(`Distance to task "${task.title}": ${distance.toFixed(2)} meters`);
-        
-        // Check if within notification distance (100m)
-        if (distance <= NOTIFICATION_DISTANCE) {
-          const lastNotificationTime = notifiedTasks.current.get(task.id) || 0;
-          const timeSinceLastNotification = currentTime - lastNotificationTime;
-
-          if (timeSinceLastNotification >= COOLDOWN_DURATION) {
-            console.log(`User is within 100m of task: ${task.title}`);
-            sendNotification(task, distance);
-            notifiedTasks.current.set(task.id, currentTime);
-          } else {
-            const remainingCooldown = Math.ceil((COOLDOWN_DURATION - timeSinceLastNotification) / 60000);
-            console.log(`Cooldown active for "${task.title}". ${remainingCooldown} minutes remaining.`);
-          }
-        }
-      }
-    });
-  }, [tasks]);
 
   const startLocationTracking = async () => {
     try {
@@ -502,7 +365,7 @@ export default function HomeScreen() {
       locationSubscription.current = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          distanceInterval: 50, // Update every 50 meters for better precision
+          distanceInterval: 100,
         },
         (newLocation) => {
           console.log('Location updated:', newLocation.coords);
@@ -519,51 +382,52 @@ export default function HomeScreen() {
     }
   };
 
-  const startBackgroundLocationTracking = async () => {
-    try {
-      const isTaskDefined = await TaskManager.isTaskDefined(BACKGROUND_LOCATION_TASK);
-      if (!isTaskDefined) {
-        console.log('[Background] Task not defined, cannot start');
-        return;
+  const checkProximityToTasks = (location: UserLocation) => {
+    console.log('Checking proximity to tasks...');
+    tasks.forEach((task) => {
+      if (!task.completed) {
+        const distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          task.latitude,
+          task.longitude
+        );
+        console.log(`Distance to task "${task.title}": ${distance.toFixed(2)} meters`);
+        
+        if (distance <= ONE_MILE_IN_METERS && !notifiedTasks.current.has(task.id)) {
+          console.log(`User is within 1 mile of task: ${task.title}`);
+          sendNotification(task, distance);
+          notifiedTasks.current.add(task.id);
+        } else if (distance > ONE_MILE_IN_METERS && notifiedTasks.current.has(task.id)) {
+          notifiedTasks.current.delete(task.id);
+        }
       }
+    });
+  };
 
-      const hasStarted = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-      if (hasStarted) {
-        console.log('[Background] Location tracking already started');
-        setBackgroundLocationEnabled(true);
-        return;
-      }
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371e3;
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
-      console.log('[Background] Starting background location tracking with geofencing...');
-      await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: 30000, // Check every 30 seconds when in geofence radius
-        distanceInterval: 50, // Or when moved 50 meters
-        foregroundService: {
-          notificationTitle: 'ProxyTasks is tracking your location',
-          notificationBody: 'We\'ll notify you when you\'re within 100m of a task',
-          notificationColor: '#4A90E2',
-        },
-        pausesUpdatesAutomatically: false,
-        activityType: Location.ActivityType.Other,
-        showsBackgroundLocationIndicator: true,
-      });
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-      console.log('[Background] Background location tracking started successfully');
-      setBackgroundLocationEnabled(true);
-    } catch (error) {
-      console.error('[Background] Error starting background location tracking:', error);
-      setBackgroundLocationEnabled(false);
-    }
+    return R * c;
   };
 
   const sendNotification = async (task: Task, distance: number) => {
+    const distanceInMiles = (distance / ONE_MILE_IN_METERS).toFixed(2);
     console.log(`Sending notification for task: ${task.title}`);
     
     await Notifications.scheduleNotificationAsync({
       content: {
         title: `📍 Near Task: ${task.title}`,
-        body: `You're ${distance.toFixed(0)} meters away from "${task.address}"`,
+        body: `You're ${distanceInMiles} miles away from "${task.address}"`,
         data: { taskId: task.id },
       },
       trigger: null,
@@ -573,7 +437,7 @@ export default function HomeScreen() {
   const loadTasks = async () => {
     console.log('[API] Loading tasks from backend...');
     try {
-      const response = await apiGet<Task[]>('/api/tasks');
+      const response = await authenticatedGet<Task[]>('/api/tasks');
       console.log('[API] Tasks loaded:', response);
       setTasks(response);
     } catch (error) {
@@ -582,26 +446,6 @@ export default function HomeScreen() {
       setTasks([]);
     }
   };
-
-  const initializeApp = useCallback(async () => {
-    console.log('Initializing ProxyTasks...');
-    await requestPermissions();
-    await startLocationTracking();
-    await startBackgroundLocationTracking();
-    await loadTasks();
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    console.log('ProxyTasks app starting...');
-    initializeApp();
-    return () => {
-      if (locationSubscription.current) {
-        console.log('Cleaning up location subscription');
-        locationSubscription.current.remove();
-      }
-    };
-  }, [initializeApp]);
 
   const saveTask = async () => {
     if (!newTask.title.trim() || !newTask.address.trim()) {
@@ -613,6 +457,7 @@ export default function HomeScreen() {
     setSaving(true);
     
     try {
+      // Step 1: Geocode the address to get coordinates
       console.log('[API] Geocoding address:', newTask.address);
       const geocodeResponse = await apiPost<{
         latitude: number;
@@ -622,6 +467,7 @@ export default function HomeScreen() {
       
       console.log('[API] Geocode result:', geocodeResponse);
 
+      // Step 2: Create the task with coordinates
       const taskData = {
         title: newTask.title,
         address: geocodeResponse.formattedAddress || newTask.address,
@@ -631,9 +477,10 @@ export default function HomeScreen() {
       };
 
       console.log('[API] Creating task:', taskData);
-      const createdTask = await apiPost<Task>('/api/tasks', taskData);
+      const createdTask = await authenticatedPost<Task>('/api/tasks', taskData);
       console.log('[API] Task created:', createdTask);
 
+      // Update local state
       setTasks([...tasks, createdTask]);
       setModalVisible(false);
       setNewTask({ title: '', address: '', bulletPoints: [''] });
@@ -648,21 +495,20 @@ export default function HomeScreen() {
   const toggleTaskCompletion = async (taskId: string) => {
     console.log('[API] Toggling task completion:', taskId);
     const task = tasks.find(t => t.id === taskId);
-    if (!task) {
-      console.log('[API] Task not found');
-      return;
-    }
+    if (!task) return;
 
+    // Optimistic update
     const updatedTasks = tasks.map(t =>
       t.id === taskId ? { ...t, completed: !t.completed } : t
     );
     setTasks(updatedTasks);
 
     try {
-      await apiPut(`/api/tasks/${taskId}`, { completed: !task.completed });
+      await authenticatedPut(`/api/tasks/${taskId}`, { completed: !task.completed });
       console.log('[API] Task completion toggled successfully');
     } catch (error) {
       console.error('[API] Error toggling task completion:', error);
+      // Revert on error
       setTasks(tasks);
       setErrorMessage('Failed to update task. Please try again.');
     }
@@ -678,22 +524,21 @@ export default function HomeScreen() {
 
   const deleteTask = async () => {
     const { taskId } = deleteConfirmModal;
-    if (!taskId) {
-      console.log('[API] No task ID to delete');
-      return;
-    }
+    if (!taskId) return;
 
     console.log('[API] Deleting task:', taskId);
     
+    // Optimistic update
     const originalTasks = [...tasks];
     setTasks(tasks.filter(task => task.id !== taskId));
     setDeleteConfirmModal({ visible: false, taskId: null, taskTitle: '' });
 
     try {
-      await apiDelete(`/api/tasks/${taskId}`);
+      await authenticatedDelete(`/api/tasks/${taskId}`);
       console.log('[API] Task deleted successfully');
     } catch (error) {
       console.error('[API] Error deleting task:', error);
+      // Revert on error
       setTasks(originalTasks);
       setErrorMessage('Failed to delete task. Please try again.');
     }
@@ -739,13 +584,8 @@ export default function HomeScreen() {
     return markers;
   };
 
-  const handleAddTaskPress = () => {
-    console.log('User tapped Add Task button (+)');
-    setModalVisible(true);
-  };
-
   if (loading) {
-    const loadingText = 'Loading ProxyTasks...';
+    const loadingText = 'Loading ProxiTask...';
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -757,20 +597,12 @@ export default function HomeScreen() {
   }
 
   const emptyStateText = 'No tasks yet. Tap the + button to create a location-based task!';
-  const backgroundStatusText = backgroundLocationEnabled 
-    ? '✓ Background tracking active (100m alerts)' 
-    : '⚠ Background tracking disabled';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ProxyTasks</Text>
-        <Text style={styles.headerSubtitle}>Get notified within 100 meters of your tasks</Text>
-        {backgroundLocationEnabled && (
-          <View style={styles.backgroundStatusBadge}>
-            <Text style={styles.backgroundStatusText}>{backgroundStatusText}</Text>
-          </View>
-        )}
+        <Text style={styles.headerTitle}>ProxiTask</Text>
+        <Text style={styles.headerSubtitle}>Location-based task reminders</Text>
       </View>
 
       <View style={styles.mapContainer}>
@@ -781,8 +613,8 @@ export default function HomeScreen() {
               ? {
                   latitude: userLocation.latitude,
                   longitude: userLocation.longitude,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
                 }
               : undefined
           }
@@ -814,7 +646,8 @@ export default function HomeScreen() {
                     task.longitude
                   )
                 : null;
-              const distanceText = distance ? `${distance.toFixed(0)} meters away` : '';
+              const distanceInMiles = distance ? (distance / ONE_MILE_IN_METERS).toFixed(2) : null;
+              const distanceText = distanceInMiles ? `${distanceInMiles} miles away` : '';
               const checkboxText = task.completed ? 'Completed' : 'Mark as complete';
 
               return (
@@ -887,11 +720,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={handleAddTaskPress}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
         <IconSymbol
           ios_icon_name="plus"
           android_material_icon_name="add"
@@ -988,6 +817,7 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         visible={deleteConfirmModal.visible}
         title="Delete Task"
@@ -999,6 +829,7 @@ export default function HomeScreen() {
         onCancel={() => setDeleteConfirmModal({ visible: false, taskId: null, taskTitle: '' })}
       />
 
+      {/* Error Modal */}
       {errorMessage && (
         <ConfirmModal
           visible={!!errorMessage}

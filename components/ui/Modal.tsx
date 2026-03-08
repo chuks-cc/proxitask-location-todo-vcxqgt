@@ -76,21 +76,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <Text style={styles.message}>{message}</Text>
 
           <View style={styles.buttonContainer}>
-            {cancelText && (
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={onCancel}
-              >
-                <Text style={styles.cancelButtonText}>{cancelText}</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onCancel}
+            >
+              <Text style={styles.cancelButtonText}>{cancelText}</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.button,
                 styles.confirmButton,
                 type === 'danger' && styles.dangerButton,
-                !cancelText && styles.fullWidthButton,
               ]}
               onPress={onConfirm}
             >
@@ -177,9 +174,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-  },
-  fullWidthButton: {
-    flex: undefined,
-    width: '100%',
   },
 });

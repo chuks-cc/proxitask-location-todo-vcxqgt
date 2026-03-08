@@ -1,17 +1,17 @@
-
 import React from 'react';
-import { Stack } from 'expo-router';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
-  // No tabs needed - just the home screen
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: 'none',
-      }}
-    >
-      <Stack.Screen name="(home)" />
-    </Stack>
+    <NativeTabs>
+      <NativeTabs.Trigger key="home" name="(home)">
+        <Icon sf="house.fill" />
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger key="profile" name="profile">
+        <Icon sf="person.fill" />
+        <Label>Profile</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
