@@ -8,7 +8,7 @@ import * as Notifications from 'expo-notifications';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Map } from '@/components/Map';
 import { ConfirmModal } from '@/components/ui/Modal';
-import { authenticatedGet, authenticatedPost, authenticatedPut, authenticatedDelete, apiPost } from '@/utils/api';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/utils/api';
 
 const ONE_MILE_IN_METERS = 1609.34;
 
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
 });
 
 export default function HomeScreen() {
-  console.log('ProxiTask HomeScreen rendered');
+  console.log('ProxyTasks HomeScreen rendered');
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -297,7 +297,7 @@ export default function HomeScreen() {
   const notifiedTasks = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    console.log('Initializing ProxiTask...');
+    console.log('Initializing ProxyTasks...');
     initializeApp();
     return () => {
       if (locationSubscription.current) {
@@ -323,7 +323,7 @@ export default function HomeScreen() {
       const locationPermission = await Location.requestForegroundPermissionsAsync();
       if (locationPermission.status !== 'granted') {
         console.log('Foreground location permission denied');
-        setErrorMessage('Location permission is required to use ProxiTask');
+        setErrorMessage('Location permission is required to use ProxyTasks');
         return;
       }
       console.log('Foreground location permission granted');
@@ -437,7 +437,7 @@ export default function HomeScreen() {
   const loadTasks = async () => {
     console.log('[API] Loading tasks from backend...');
     try {
-      const response = await authenticatedGet<Task[]>('/api/tasks');
+      const response = await apiGet<Task[]>('/api/tasks');
       console.log('[API] Tasks loaded:', response);
       setTasks(response);
     } catch (error) {
@@ -477,7 +477,7 @@ export default function HomeScreen() {
       };
 
       console.log('[API] Creating task:', taskData);
-      const createdTask = await authenticatedPost<Task>('/api/tasks', taskData);
+      const createdTask = await apiPost<Task>('/api/tasks', taskData);
       console.log('[API] Task created:', createdTask);
 
       // Update local state
@@ -504,7 +504,7 @@ export default function HomeScreen() {
     setTasks(updatedTasks);
 
     try {
-      await authenticatedPut(`/api/tasks/${taskId}`, { completed: !task.completed });
+      await apiPut(`/api/tasks/${taskId}`, { completed: !task.completed });
       console.log('[API] Task completion toggled successfully');
     } catch (error) {
       console.error('[API] Error toggling task completion:', error);
@@ -534,7 +534,7 @@ export default function HomeScreen() {
     setDeleteConfirmModal({ visible: false, taskId: null, taskTitle: '' });
 
     try {
-      await authenticatedDelete(`/api/tasks/${taskId}`);
+      await apiDelete(`/api/tasks/${taskId}`);
       console.log('[API] Task deleted successfully');
     } catch (error) {
       console.error('[API] Error deleting task:', error);
@@ -585,7 +585,7 @@ export default function HomeScreen() {
   };
 
   if (loading) {
-    const loadingText = 'Loading ProxiTask...';
+    const loadingText = 'Loading ProxyTasks...';
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -601,7 +601,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ProxiTask</Text>
+        <Text style={styles.headerTitle}>ProxyTasks</Text>
         <Text style={styles.headerSubtitle}>Location-based task reminders</Text>
       </View>
 
