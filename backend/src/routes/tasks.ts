@@ -1,6 +1,6 @@
 import type { App } from '../index.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import * as schema from '../db/schema.js';
 
@@ -27,33 +27,24 @@ const geocodeSchema = z.object({
 });
 
 export function registerTaskRoutes(app: App) {
-  const requireAuth = app.requireAuth();
-
-  // GET /api/tasks - Get all tasks for authenticated user
+  // GET /api/tasks - Get all tasks
   app.fastify.get('/api/tasks', async (
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    const session = await requireAuth(request, reply);
-    if (!session) return;
-
-    app.logger.info(
-      { userId: session.user.id },
-      'Fetching all tasks for user'
-    );
+    app.logger.info('Fetching all tasks');
 
     try {
-      const userTasks = await app.db
+      const allTasks = await app.db
         .select()
-        .from(schema.tasks)
-        .where(eq(schema.tasks.userId, session.user.id));
+        .from(schema.tasks);
 
       app.logger.info(
-        { userId: session.user.id, taskCount: userTasks.length },
+        { taskCount: allTasks.length },
         'Tasks fetched successfully'
       );
 
-      return userTasks.map((task) => ({
+      return allTasks.map((task) => ({
         id: task.id,
         title: task.title,
         address: task.address,
@@ -65,7 +56,7 @@ export function registerTaskRoutes(app: App) {
       }));
     } catch (error) {
       app.logger.error(
-        { err: error, userId: session.user.id },
+        { err: error },
         'Failed to fetch tasks'
       );
       throw error;
@@ -77,13 +68,10 @@ export function registerTaskRoutes(app: App) {
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    const session = await requireAuth(request, reply);
-    if (!session) return;
-
     const body = createTaskSchema.parse(request.body);
 
     app.logger.info(
-      { userId: session.user.id, title: body.title, address: body.address },
+      { title: body.title, address: body.address },
       'Creating new task'
     );
 
@@ -97,12 +85,11 @@ export function registerTaskRoutes(app: App) {
           longitude: body.longitude.toString(),
           bulletPoints: body.bulletPoints,
           completed: false,
-          userId: session.user.id,
         })
         .returning();
 
       app.logger.info(
-        { taskId: newTask.id, userId: session.user.id },
+        { taskId: newTask.id },
         'Task created successfully'
       );
 
@@ -118,7 +105,7 @@ export function registerTaskRoutes(app: App) {
       };
     } catch (error) {
       app.logger.error(
-        { err: error, userId: session.user.id, body },
+        { err: error, body },
         'Failed to create task'
       );
       throw error;
@@ -130,33 +117,25 @@ export function registerTaskRoutes(app: App) {
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    const session = await requireAuth(request, reply);
-    if (!session) return;
-
     const { id } = request.params as { id: string };
     const body = updateTaskSchema.parse(request.body);
 
     app.logger.info(
-      { userId: session.user.id, taskId: id },
+      { taskId: id },
       'Updating task'
     );
 
     try {
-      // Verify task belongs to user
+      // Check if task exists
       const existingTask = await app.db
         .select()
         .from(schema.tasks)
-        .where(
-          and(
-            eq(schema.tasks.id, id),
-            eq(schema.tasks.userId, session.user.id)
-          )
-        );
+        .where(eq(schema.tasks.id, id));
 
       if (existingTask.length === 0) {
         app.logger.warn(
-          { userId: session.user.id, taskId: id },
-          'Task not found or user unauthorized'
+          { taskId: id },
+          'Task not found'
         );
         return reply.status(404).send({ error: 'Task not found' });
       }
@@ -179,7 +158,7 @@ export function registerTaskRoutes(app: App) {
         .returning();
 
       app.logger.info(
-        { taskId: id, userId: session.user.id },
+        { taskId: id },
         'Task updated successfully'
       );
 
@@ -195,7 +174,7 @@ export function registerTaskRoutes(app: App) {
       };
     } catch (error) {
       app.logger.error(
-        { err: error, userId: session.user.id, taskId: id, body },
+        { err: error, taskId: id, body },
         'Failed to update task'
       );
       throw error;
@@ -207,32 +186,24 @@ export function registerTaskRoutes(app: App) {
     request: FastifyRequest,
     reply: FastifyReply
   ) => {
-    const session = await requireAuth(request, reply);
-    if (!session) return;
-
     const { id } = request.params as { id: string };
 
     app.logger.info(
-      { userId: session.user.id, taskId: id },
+      { taskId: id },
       'Deleting task'
     );
 
     try {
-      // Verify task belongs to user
+      // Check if task exists
       const existingTask = await app.db
         .select()
         .from(schema.tasks)
-        .where(
-          and(
-            eq(schema.tasks.id, id),
-            eq(schema.tasks.userId, session.user.id)
-          )
-        );
+        .where(eq(schema.tasks.id, id));
 
       if (existingTask.length === 0) {
         app.logger.warn(
-          { userId: session.user.id, taskId: id },
-          'Task not found or user unauthorized'
+          { taskId: id },
+          'Task not found'
         );
         return reply.status(404).send({ error: 'Task not found' });
       }
@@ -240,14 +211,14 @@ export function registerTaskRoutes(app: App) {
       await app.db.delete(schema.tasks).where(eq(schema.tasks.id, id));
 
       app.logger.info(
-        { taskId: id, userId: session.user.id },
+        { taskId: id },
         'Task deleted successfully'
       );
 
       return { success: true };
     } catch (error) {
       app.logger.error(
-        { err: error, userId: session.user.id, taskId: id },
+        { err: error, taskId: id },
         'Failed to delete task'
       );
       throw error;
