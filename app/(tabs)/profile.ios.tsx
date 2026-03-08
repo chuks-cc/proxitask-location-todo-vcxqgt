@@ -1,13 +1,28 @@
 
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/IconSymbol";
 import { GlassView } from "expo-glass-effect";
 import { useTheme } from "@react-navigation/native";
+import { useAuth } from "@/contexts/AuthContext";
+import { ConfirmModal } from "@/components/ui/Modal";
+import { useRouter } from "expo-router";
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+
+  const handleSignOut = async () => {
+    setShowSignOutModal(false);
+    try {
+      await signOut();
+    } finally {
+      router.replace("/auth");
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
@@ -18,10 +33,10 @@ export default function ProfileScreen() {
         <GlassView style={styles.profileHeader} glassEffectStyle="regular">
           <IconSymbol ios_icon_name="location.circle.fill" android_material_icon_name="location-on" size={80} color={theme.colors.primary} />
           <Text style={[styles.name, { color: theme.colors.text }]}>
-            ProxyTasks
+            {user?.name || 'ProxyTasks User'}
           </Text>
           <Text style={[styles.email, { color: theme.dark ? '#98989D' : '#666' }]}>
-            Location-based task reminders
+            {user?.email || 'Location-based task reminders'}
           </Text>
         </GlassView>
 
@@ -46,7 +61,31 @@ export default function ProfileScreen() {
             ProxyTasks helps you remember tasks based on your location. Create tasks with addresses, and get notified when you're nearby.
           </Text>
         </View>
+
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={() => setShowSignOutModal(true)}
+        >
+          <IconSymbol
+            ios_icon_name="rectangle.portrait.and.arrow.right"
+            android_material_icon_name="logout"
+            size={20}
+            color="#FF3B30"
+          />
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showSignOutModal}
+        title="Sign Out"
+        message="Are you sure you want to sign out?"
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        type="warning"
+        onConfirm={handleSignOut}
+        onCancel={() => setShowSignOutModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -100,5 +139,23 @@ const styles = StyleSheet.create({
   infoDescription: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 32,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    backgroundColor: 'rgba(255, 59, 48, 0.05)',
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
   },
 });

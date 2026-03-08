@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ProxiTask",
-    "slug": "ProxiTask",
+    "slug": "proxitask",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -60,13 +60,13 @@
         }
       ]
     ],
-    "scheme": "ProxiTask",
+    "scheme": "proxitask",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {},
-      "backendUrl": "https://2866sc2ucfrrp8nf5fvke56cet4smzdj.app.specular.dev"
+      "backendUrl": "https://cf62pe3jexy9ebtkjvfywbh3zd6bpqsy.app.specular.dev"
     }
   }
 }
