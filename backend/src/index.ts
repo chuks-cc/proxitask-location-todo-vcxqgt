@@ -2,6 +2,7 @@ import { createApplication } from "@specific-dev/framework";
 import * as appSchema from './db/schema.js';
 import * as authSchema from './db/auth-schema.js';
 import { registerTaskRoutes } from './routes/tasks.js';
+import { registerPushNotificationRoutes } from './routes/push-notifications.js';
 
 const schema = { ...appSchema, ...authSchema };
 
@@ -16,6 +17,7 @@ app.withAuth();
 
 // Register routes
 registerTaskRoutes(app);
+registerPushNotificationRoutes(app);
 
 await app.run();
 app.logger.info('Application running');
