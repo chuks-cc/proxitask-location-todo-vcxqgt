@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ProxiTask",
-    "slug": "ProxiTask",
+    "slug": "proxitask",
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -61,7 +61,7 @@
         }
       ]
     ],
-    "scheme": "ProxiTask",
+    "scheme": "proxitask",
     "experiments": {
       "typedRoutes": true
     },
